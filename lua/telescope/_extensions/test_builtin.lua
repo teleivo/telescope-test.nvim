@@ -47,8 +47,9 @@ M.find_tests = function(opts)
     -- position = make_position_param()
   -- }
   --
-  print("locations")
-  print(vim.inspect(locations))
+
+  -- print("locations")
+  -- print(vim.inspect(locations))
 
   local params = {
     textDocument = {
@@ -59,8 +60,8 @@ M.find_tests = function(opts)
       character = locations[1].col,
     },
   }
-  print("params")
-  print(vim.inspect(params))
+  -- print("params")
+  -- print(vim.inspect(params))
 
   -- telescope.builtin.lsp.references
   -- TODO I assume I do not want to include the declaration?
@@ -79,7 +80,7 @@ M.find_tests = function(opts)
     end
   end
 
-  print(vim.inspect(locations))
+  -- print(vim.inspect(locations))
 
   -- TODO filter for test files
 
