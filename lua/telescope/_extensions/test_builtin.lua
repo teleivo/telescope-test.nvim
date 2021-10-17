@@ -88,18 +88,14 @@ M.find_tests = function(opts)
   -- or directly calling telescope on it. probably the first
   -- return locations
 
-  opts.ignore_filename = opts.ignore_filename or true
   pickers.new(opts, {
-    prompt_title = "Tests referencing current class",
+    prompt_title = "LSP Test References",
     finder = finders.new_table {
       results = locations,
-      entry_maker = opts.entry_maker or make_entry.gen_from_lsp_symbols(opts),
+      entry_maker = opts.entry_maker or make_entry.gen_from_quickfix(opts),
     },
     previewer = conf.qflist_previewer(opts),
-    sorter = conf.prefilter_sorter {
-      tag = "symbol_type",
-      sorter = conf.generic_sorter(opts),
-    },
+    sorter = conf.generic_sorter(opts),
   }):find()
 end
 
