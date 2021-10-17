@@ -7,6 +7,7 @@ local conf = require("telescope.config").values
 local M = {}
 
 M.find_tests = function(opts)
+  opts = opts or { symbols = "Class" }
 
   -- get the lsp_document_symbols; pass in {symbol="Class"}
   -- to only filter for Kind="Class"
