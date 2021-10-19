@@ -6,9 +6,7 @@ local conf = require("telescope.config").values
 
 local M = {}
 
-M.find_tests = function(opts)
-  opts = opts or { symbols = "Class" }
-
+local function list_tests(opts)
   -- get the lsp_document_symbols; pass in {symbol="Class"}
   -- to only filter for Kind="Class"
   -- TODO what if there is more than one class? take the outer one
@@ -41,16 +39,7 @@ M.find_tests = function(opts)
   end
 
   -- turn the result into a lsp_references request
-  -- TODO construct https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentPositionParams
-  -- {
-    -- textDocument = M.make_text_document_params();
-    -- position = make_position_param()
-  -- }
-  --
-
-  -- print("locations")
-  -- print(vim.inspect(locations))
-
+  -- construct https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentPositionParams
   local params = {
     textDocument = {
       uri = vim.uri_from_fname(locations[1].filename)
@@ -60,8 +49,6 @@ M.find_tests = function(opts)
       character = locations[1].col,
     },
   }
-  -- print("params")
-  -- print(vim.inspect(params))
 
   -- telescope.builtin.lsp.references
   -- TODO I assume I do not want to include the declaration?
@@ -80,21 +67,49 @@ M.find_tests = function(opts)
     end
   end
 
-  -- print(vim.inspect(locations))
+  -- filter locations for tests
+  -- TODO this might differ by language
+  -- would it make sense/be feasible to look for an import/annotation
+  -- to confirm its a test as opposed to just looking for a pattern in the
+  -- filename?
+  --
+  -- TODO I create a set so test files only occur once
+  -- how do I choose which of the references to take?
+  -- or do I simply override their lnum and col to 0?
+   local tests = {}
+   for _, l in ipairs(locations) do
+     if string.find(l.filename, "[tT]est") then
+       tests[l.filename] = l
+     end
+   end
 
-  -- TODO filter for test files
+   -- turn it into a location list for telescope
+  -- into files
+   local test_locations = {}
+   for _, tl in pairs(tests) do
+     test_locations[#test_locations+1] = {
+      value = tl.filename,
+    }
+   end
 
-  -- TODO decide on whether to make a function returning the list of tests
-  -- or directly calling telescope on it. probably the first
-  -- return locations
+   -- TODO why is the DateTimeUnitTest not included?
+  return test_locations
+end
 
+M.list_tests = list_tests
+
+M.list = function(opts)
+  opts = opts or { symbols = "Class" }
+  local locations = list_tests(opts)
+
+  -- TODO do not show the message. does that mean I don't want the previewer? 
   pickers.new(opts, {
     prompt_title = "LSP Test References",
     finder = finders.new_table {
       results = locations,
-      entry_maker = opts.entry_maker or make_entry.gen_from_quickfix(opts),
+      entry_maker = opts.entry_maker or make_entry.gen_from_file(opts),
     },
-    previewer = conf.qflist_previewer(opts),
+    previewer = conf.file_previewer(opts),
     sorter = conf.generic_sorter(opts),
   }):find()
 end
